@@ -1,12 +1,15 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+output: html_document
+keep_md: true 
 ---
 
 
 ## Background
+
+### Embargo
+
+These are the notes of my exploration of the raw data.  They are clearly not suitable for publication to any audience not familiar with the R language and the general approach to data exploration, employed in this context.  They simply form a complete record of my exploration and as such they do not elucidate this particular dataset and its implications all that clearly.  However, these transformations of the data form the foundations for the preparation of a publishable report.
 
 ### Original Documentation
 
@@ -16,52 +19,232 @@ https://github.com/rdpeng/RepData_PeerAssessment1
 
 and placed in my local repo: PeerAssessment1
 
+At the conclusion of these steps, the new repo was pushed back to GitHub, from where it can now be forked.
+
+##Functions
+```{r, echo = TRUE}
+lookup_steps <- function(average_steps, missing_days){
+  ii <- dim(missing_days)
+  i <- ii[1]
+  for(n in 1:i){
+    day <- missing_days[n, "day"]
+    interval <- missing_days[n, "interval"]
+    missing_days[n, "steps"] <- average_steps[(average_steps$day==day)
+                                  &(average_steps$interval==interval), "steps"]
+    next
+  }
+  return(missing_days)
+}
+#this function will return the day of the week for a given date
+what_day <- function(date){
+  date <- as.POSIXlt(date,format="%Y-%m-%d")
+  wday <- weekdays(date)
+}
+#data$day <- sapply(data$date, what_day)
+#this function will adjust the interval minutes to decimal fraction of an hour
+dec_mins <- function(x){
+  hours <- floor(x/100) 
+  mins <- (x %% 100)*100/60
+  y <- as.integer(round(100*hours + mins))
+  }
+```
 
 ## Loading and preprocessing the data
 
 ```{r}
-setwd("C:/Users/Brian/Documents/PeerAssessment1")
-unzip("activity.zip")
+setwd("C:/Users/Brian/Documents/PeerAssessment1")#Set WD to local repo.
+unzip("activity.zip")#leaves the data file in the WD.
 data <- read.csv(file = "activity.csv", header = TRUE)
-# Check the contents of the data file.
+```
+### Check the contents of the data file.
+
+####Code
+
+```{r}
 str(data)
-sum(!is.na(data$steps))#Steps recorded as anticipated
-sum((!is.na(data$steps)) & (data$steps == 0))#Zero Steps recorded
-sum(is.na(data$steps))#NA
+summary(data)
+d <<- dim(data)
+d
+c1 <<- sum(!is.na(data$steps))#Steps recorded as anticipated
+c1
+c2 <<- sum((!is.na(data$steps)) & (data$steps == 0))#Zero Steps recorded
+c2
+c3 <<- sum(is.na(data$steps))#NA
+c3
+```
+
+####Commentary
+
+The above code shows that the raw data is a dataframe composed of `r d[1]` observations of `r d[2]` variables.
+
+* $steps    (integer)the number of steps taken in that interval 
+* $date     (character factor)the date of the recording
+* $interval (integer)the time of the recording in 5 minute intervals (hhmm)
+
+The dataframe contains `r c1` complete records, `r c2` of which recorded 0 steps.
+A further `r c3` records have missing data ($steps == NA) which is interpreted to mean that the device was malfunctioning at these intervals.
+
+###Is there a pattern to the missing data?
+
+####Code
+
+
+```{r}
 #Check the other 2 variables for NA's
 data[is.na(data$date),]
 data[is.na(data$interval),]
+#We appear to have 61 complete days of 288 * 5 minute intervals.
+e1 <<- c1/288
+#So, we have 8 complete days of missing $steps == NA
+missingdays <- (data[is.na(data$steps),"date"])
+length(missingdays)
+a1 <- length(unique(missingdays))
+e3 <<- c3/288
+#This leaves us with 53*288 intervals of zero and non-zero data
+dim(data[!is.na(data$steps),])
+53*288
 ```
 
+####Commentary
 
-## What is mean total number of steps taken per day?
+The above manipulations helped to better understand the overall shape of the data.\n
+It demonstrates that:
+
+1. All the missing NA's are contained in $steps variable.
+2. There are `r e1` complete days, each with 288*5 minute intervals.
+3. And there are `r e3` missing days, each with 288*5 minute intervals.
+
+#####How many complete days do we have?
+
+####Code
+
+```{r}
+complete_days <- data[!is.na(data$steps),]#Reduces the dataset to $steps==NA
+complete_days <- complete_days[complete_days$interval==0,]#Reduces the dataset to 8 days
+table(complete_days$day)#Shows how many complete days on each day of the week.
+```
+
+######Which days of the week are missing?.
+
+```{r}
+data$day <- sapply(data$date, what_day)
+data$day <- ordered(data$day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", 
+                                           "Friday", "Saturday", "Sunday"))
+missing_days <- data[is.na(data$steps),]#Reduces the dataset to $steps==NA
+missing_days <- missing_days[missing_days$interval==0,]#Reduces the dataset to 8 days
+table(missing_days$day)#Shows how many missing days on each day of the week.
+```
+
+####Commentary
+
+The above code shows that both the complete and the missing days are spread evenly throughout the days of the week.
+
+## What is the mean total number of steps taken per day?
 
 For this part of the assignment, you can ignore the missing values in the dataset.
 
-```{r}
+```{r, echo = TRUE}
 data2 <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
-dim(data2) #Check that only NA's are removed
+dim(data2) #Confirm that only NA's are removed
+length(unique(data2$date)) #Confirm the number of days of complete data (see previous calculation)
+str(data2)
+
 #Count the total steps for each day for the histogram
 daily_total_steps <- aggregate(data2$steps, by=list(data2$date), FUN=sum)
-hist(daily_total_steps$x)
+dim(daily_total_steps)
+hist(daily_total_steps$x, ylim=c(0, 30))#For the 53 days of complete data
+title(main = "Histogram of Each Day's Total Daily Steps", xlab = "Total Number of Steps on a Given Day", ylab = "Number of Days")
+#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/hist1.png")
+dev.off()
+#Calculate and report the mean and median total number of steps taken per day
+summary(daily_total_steps$x)
+#daily_mean_steps <- aggregate(data2$steps, by=list(data2$date), FUN=mean)
+#daily_median_steps <- aggregate(data2$steps, by=list(data2$date), FUN=median)
 ```
 
 ## What is the average daily activity pattern?
 
+### Commentary
+The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.
 
+###Code
+```{r}
+###Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+data3 <- data[!is.na(data$steps),]
+data3$interval <- sapply(data3$interval, dec_mins)#convert minutes to a decimal
+
+library(ggplot2)
+data3$interval <- data3$interval/100
+data3$steps <- data3$steps/5
+interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
+plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
+    xlab = "Time of day (24 hour clock), starting at midnight.",
+    ylab = "Average number of steps per minute.",
+    main = "Average activity level across the day (Steps per minute.)")
+#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png")
+dev.off()
+```
 
 ## Imputing missing values
 
+###Discussion
+
+As shown above, the missing days are distributed evenly between the weekdays (6) and the weekends (2).  So it was decided to impute the missing values by calculating the mean for a given interval on a given day of the week and to insert that mean into the same missing day/interval.
+
+###Code
+
 ```{r}
-#Check to see if all the NA's were on the one day
-count_days <- levels(data$date)
-length(count_days)
-count2_days <- levels(data2$date)
-length(count2_days)
+complete_data <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
+average_steps <- aggregate(complete_data$steps, by=list(complete_data$day, complete_data$interval),
+                           FUN=mean)
+names(average_steps) <- c("day", "interval", "steps")
+average_steps$steps <- as.integer(round(average_steps$steps))
+
+missing_days <- data[is.na(data$steps),]#select the records with missing $steps == NA
+fixed_missing_days <- lookup_steps(average_steps, missing_days)# ref: Functions section this report
+
+fixed_data <- rbind(complete_data, fixed_missing_days)
+#check for missing $steps
+fixed_data[is.na(fixed_data$steps),]
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+###Commentary
+
+As with the previous plot, the gaps had to be removed at the ends of each hour. 
+
+The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.
+
+###Code
+
+```{r}
+data4 <- data[!is.na(data$steps),]#remove the missing $steps == NA
+#Convert minutes to 100ths of an hour to remove gaps in plot between 55 an 60 minutes.
+data4$interval <- sapply(data4$interval, dec_mins)#See dec_mins()in Functions
+date <- as.POSIXlt(data4$date,format="%Y-%m-%d")#Convert $date to DATE format
+head(date)
+head(date$wday)
+wdays <- (weekdays(date))
+wdays <- data.frame(day = wdays, interval = data4$interval, steps = data4$steps)
+head(wdays)
+weekends <- wdays[(wdays$day == "Saturday")|(wdays$day == "Sunday"), c("interval", "steps")]
+weekdays <- wdays[!((wdays$day == "Saturday")|(wdays$day == "Sunday")), c("interval", "steps")]
+weekend_mean_steps <- aggregate(weekends$steps, by=list(weekends$interval), FUN=mean)
+weekday_mean_steps <- aggregate(weekdays$steps, by=list(weekdays$interval), FUN=mean)
+weekend.df <- data.frame(day = "weekend", interval = weekend_mean_steps$Group.1, steps = weekend_mean_steps$x)
+weekday.df <- data.frame(day = "weekday", interval = weekday_mean_steps$Group.1, steps = weekday_mean_steps$x)
+combined.df <- rbind(weekend.df, weekday.df)
+combined.df$interval <- combined.df$interval/100
+library(lattice)
+combined_plot <- xyplot(steps ~ interval | day , data=combined.df, type = "l", layout = c(1,2),
+  xlab = "Time of day (24 hour clock), starting at midnight.",
+  ylab = "Average number of steps per minute.",
+  main = "Comparing average activity levels across the day\n on Weekdays and Weekends.")
+print(combined_plot)
+dev.off()
+```
 
 ## Software
 
