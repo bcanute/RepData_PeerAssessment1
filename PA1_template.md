@@ -1,6 +1,6 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output:html_document
+output:html_document:
 ---
 
 
@@ -53,7 +53,7 @@ dec_mins <- function(x){
 
 
 ```r
-setwd("C:/Users/Brian/Documents/PeerAssessment1")#Set WD to local repo.
+#setwd("C:/Users/Brian/Documents/PeerAssessment1")#Set WD to local repo.
 unzip("activity.zip")#leaves the data file in the WD.
 data <- read.csv(file = "activity.csv", header = TRUE)
 ```
