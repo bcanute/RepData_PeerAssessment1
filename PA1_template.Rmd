@@ -21,7 +21,7 @@ and placed in my local repo: PeerAssessment1
 At the conclusion of these steps, the new repo was pushed back to GitHub, from where it can now be forked.
 
 ##Functions
-```{r, echo = TRUE}
+```{r}
 lookup_steps <- function(average_steps, missing_days){
   ii <- dim(missing_days)
   i <- ii[1]
@@ -142,7 +142,7 @@ The above code shows that both the complete and the missing days are spread even
 
 For this part of the assignment, you can ignore the missing values in the dataset.
 
-```{r, echo = TRUE}
+```{r}
 data2 <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
 dim(data2) #Confirm that only NA's are removed
 length(unique(data2$date)) #Confirm the number of days of complete data (see previous calculation)
