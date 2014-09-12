@@ -138,7 +138,7 @@ The above code shows that both the complete and the missing days are spread even
 
 For this part of the assignment, you can ignore the missing values in the dataset.
 
-```{r}
+```{r hist1, echo = TRUE, fig.keep = 'all'}
 data2 <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
 dim(data2) #Confirm that only NA's are removed
 length(unique(data2$date)) #Confirm the number of days of complete data (see previous calculation)
@@ -146,11 +146,11 @@ str(data2)
 
 #Count the total steps for each day for the histogram
 daily_total_steps <- aggregate(data2$steps, by=list(data2$date), FUN=sum)
+png("C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
 hist(daily_total_steps$x, ylim=c(0, 20), 
      main = "Histogram of Each Day's Total Daily Steps", breaks = 10,
       xlab = "Total Number of Steps on a Given Day", 
       ylab = "Number of Days", labels = TRUE)
-dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
 dev.off()
 #Calculate and report the mean and median total number of steps taken per day
 summary(daily_total_steps$x)
@@ -164,7 +164,7 @@ summary(daily_total_steps$x)
 The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.
 
 ###Code
-```{r}
+```{r plot2, echo = TRUE, fig.keep = 'all'}
 ###Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 data3 <- data[!is.na(data$steps),]
@@ -175,10 +175,11 @@ data3$interval <- data3$interval/100
 data3$steps <- data3$steps/5
 interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
 png("C:/Users/Brian/Documents/PeerAssessment1/figure/plot2.png")
-plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
+p <- plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
     xlab = "Time of day (24 hour clock), starting at midnight.",
     ylab = "Average number of steps per minute.",
     main = "Average activity level across the day (Steps per minute.)")
+p
 dev.off()
 ```
 
@@ -215,7 +216,7 @@ The comparison between the week days and the weekends shows a reasonably predict
 
 ###Code
 
-```{r}
+```{r combined_plot, echo = TRUE, fig.keep = 'all'}
 data4 <- data[!is.na(data$steps),]#remove the missing $steps == NA
 #Convert minutes to 100ths of an hour to remove gaps in plot between 55 an 60 minutes.
 data4$interval <- sapply(data4$interval, dec_mins)#See dec_mins()in Functions

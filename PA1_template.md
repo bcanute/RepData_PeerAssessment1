@@ -270,30 +270,19 @@ str(data2)
 ```r
 #Count the total steps for each day for the histogram
 daily_total_steps <- aggregate(data2$steps, by=list(data2$date), FUN=sum)
+png("C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
 hist(daily_total_steps$x, ylim=c(0, 20), 
      main = "Histogram of Each Day's Total Daily Steps", breaks = 10,
       xlab = "Total Number of Steps on a Given Day", 
       ylab = "Number of Days", labels = TRUE)
-```
-
-![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
-
-```r
-dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
-```
-
-```
-## png 
-##   3
-```
-
-```r
 dev.off()
 ```
 
+![plot of chunk hist1](figure/hist1.png) 
+
 ```
-## pdf 
-##   2
+## RStudioGD 
+##         2
 ```
 
 ```r
@@ -329,16 +318,26 @@ data3$interval <- data3$interval/100
 data3$steps <- data3$steps/5
 interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
 png("C:/Users/Brian/Documents/PeerAssessment1/figure/plot2.png")
-plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
+p <- plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
     xlab = "Time of day (24 hour clock), starting at midnight.",
     ylab = "Average number of steps per minute.",
     main = "Average activity level across the day (Steps per minute.)")
-dev.off()
+p
 ```
 
 ```
-## pdf 
-##   2
+## NULL
+```
+
+```r
+dev.off()
+```
+
+![plot of chunk plot2](figure/plot2.png) 
+
+```
+## RStudioGD 
+##         2
 ```
 
 ## Imputing missing values
@@ -437,9 +436,11 @@ print(combined_plot)#, "C:/Users/Brian/Documents/PeerAssessment1/figure/combined
 dev.off()
 ```
 
+![plot of chunk combined_plot](figure/combined_plot.png) 
+
 ```
-## pdf 
-##   2
+## RStudioGD 
+##         2
 ```
 
 ## Software
