@@ -279,13 +279,21 @@ hist(daily_total_steps$x, ylim=c(0, 20),
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
 
 ```r
-#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
+dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
+```
+
+```
+## png 
+##   3
+```
+
+```r
 dev.off()
 ```
 
 ```
-## null device 
-##           1
+## pdf 
+##   2
 ```
 
 ```r
@@ -320,34 +328,17 @@ library(ggplot2)
 data3$interval <- data3$interval/100
 data3$steps <- data3$steps/5
 interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
+png("C:/Users/Brian/Documents/PeerAssessment1/figure/plot2.png")
 plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
     xlab = "Time of day (24 hour clock), starting at midnight.",
     ylab = "Average number of steps per minute.",
     main = "Average activity level across the day (Steps per minute.)")
-```
-
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
-
-```r
-dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png")
-```
-
-```
-## Warning: unable to open file 'C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png' for writing
-## Warning: opening device failed
-```
-
-```
-## Error: unable to start png() device
-```
-
-```r
 dev.off()
 ```
 
 ```
-## null device 
-##           1
+## pdf 
+##   2
 ```
 
 ## Imputing missing values
@@ -441,18 +432,14 @@ combined_plot <- xyplot(steps ~ interval | day , data=combined.df, type = "l", l
   xlab = "Time of day (24 hour clock), starting at midnight.",
   ylab = "Average number of steps per minute.",
   main = "Comparing average activity levels across the day\n on Weekdays and Weekends.")
-print(combined_plot)
-```
-
-![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
-
-```r
+trellis.device(device = "png", file = "C:/Users/Brian/Documents/PeerAssessment1/figure/combined_plot.png")
+print(combined_plot)#, "C:/Users/Brian/Documents/PeerAssessment1/figure/combined_plot.png")
 dev.off()
 ```
 
 ```
-## null device 
-##           1
+## pdf 
+##   2
 ```
 
 ## Software

@@ -150,7 +150,7 @@ hist(daily_total_steps$x, ylim=c(0, 20),
      main = "Histogram of Each Day's Total Daily Steps", breaks = 10,
       xlab = "Total Number of Steps on a Given Day", 
       ylab = "Number of Days", labels = TRUE)
-#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
+dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
 dev.off()
 #Calculate and report the mean and median total number of steps taken per day
 summary(daily_total_steps$x)
@@ -174,11 +174,11 @@ library(ggplot2)
 data3$interval <- data3$interval/100
 data3$steps <- data3$steps/5
 interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
+png("C:/Users/Brian/Documents/PeerAssessment1/figure/plot2.png")
 plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
     xlab = "Time of day (24 hour clock), starting at midnight.",
     ylab = "Average number of steps per minute.",
     main = "Average activity level across the day (Steps per minute.)")
-dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png")
 dev.off()
 ```
 
@@ -238,7 +238,8 @@ combined_plot <- xyplot(steps ~ interval | day , data=combined.df, type = "l", l
   xlab = "Time of day (24 hour clock), starting at midnight.",
   ylab = "Average number of steps per minute.",
   main = "Comparing average activity levels across the day\n on Weekdays and Weekends.")
-print(combined_plot)
+trellis.device(device = "png", file = "C:/Users/Brian/Documents/PeerAssessment1/figure/combined_plot.png")
+print(combined_plot)#, "C:/Users/Brian/Documents/PeerAssessment1/figure/combined_plot.png")
 dev.off()
 ```
 
