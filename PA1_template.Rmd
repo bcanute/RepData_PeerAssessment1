@@ -16,7 +16,30 @@ and placed in my local repo: PeerAssessment1
 
 At the conclusion of these steps, the new repo was pushed back to GitHub, from where it can now be forked.
 
-##Functions
+## Functions
+
+The following functions were developed for this assignment but are available for use elsewhere.
+
+##### This function will return the day of the week for a given date
+```{r}
+what_day <- function(date){
+  date <- as.POSIXlt(date,format="%Y-%m-%d")
+  wday <- weekdays(date)
+}
+#data$day <- sapply(data$date, what_day)#Uncomment to test this function.
+```
+##### This function will adjust the interval minutes to decimal fraction of an hour.
+```{r}
+dec_mins <- function(x){
+  hours <- floor(x/100) 
+  mins <- (x %% 100)*100/60
+  y <- as.integer(round(100*hours + mins))
+  }
+```
+
+##### This function replaces missing $intervals with the average for that day/interval.
+
+It will be used later in the assignment to impute missing $steps data.
 ```{r}
 lookup_steps <- function(average_steps, missing_days){
   ii <- dim(missing_days)
@@ -30,18 +53,6 @@ lookup_steps <- function(average_steps, missing_days){
   }
   return(missing_days)
 }
-#this function will return the day of the week for a given date
-what_day <- function(date){
-  date <- as.POSIXlt(date,format="%Y-%m-%d")
-  wday <- weekdays(date)
-}
-#data$day <- sapply(data$date, what_day)
-#this function will adjust the interval minutes to decimal fraction of an hour
-dec_mins <- function(x){
-  hours <- floor(x/100) 
-  mins <- (x %% 100)*100/60
-  y <- as.integer(round(100*hours + mins))
-  }
 ```
 
 ## Loading and preprocessing the data
@@ -53,7 +64,7 @@ data <- read.csv(file = "activity.csv", header = TRUE)
 ```
 ### Check the contents of the data file.
 
-####Code
+#### Code
 
 ```{r}
 str(data)
@@ -68,7 +79,7 @@ c3 <<- sum(is.na(data$steps))#NA
 c3
 ```
 
-####Commentary
+#### Commentary
 
 The above code shows that the raw data is a dataframe composed of `r d[1]` observations of `r d[2]` variables.
 
@@ -79,9 +90,9 @@ The above code shows that the raw data is a dataframe composed of `r d[1]` obser
 The dataframe contains `r c1` complete records, `r c2` of which recorded 0 steps.
 A further `r c3` records have missing data ($steps == NA) which is interpreted to mean that the device was malfunctioning at these intervals.
 
-###Is there a pattern to the missing data?
+### Is there a pattern to the missing data?
 
-####Code
+#### Code
 
 
 ```{r}
@@ -100,7 +111,7 @@ dim(data[!is.na(data$steps),])
 53*288
 ```
 
-####Commentary
+#### Commentary
 
 The above manipulations helped to better understand the overall shape of the data.\n
 It demonstrates that:
@@ -109,9 +120,9 @@ It demonstrates that:
 2. There are `r e1` complete days, each with 288*5 minute intervals.
 3. And there are `r e3` missing days, each with 288*5 minute intervals.
 
-#####How many complete days do we have?
+##### How many complete days do we have?
 
-####Code
+#### Code
 
 ```{r}
 complete_days <- data[!is.na(data$steps),]#Reduces the dataset to $steps==NA
@@ -119,7 +130,7 @@ complete_days <- complete_days[complete_days$interval==0,]#Reduces the dataset t
 table(complete_days$day)#Shows how many complete days on each day of the week.
 ```
 
-######Which days of the week are missing?.
+##### Which days of the week are missing?.
 
 ```{r}
 data$day <- sapply(data$date, what_day)
@@ -130,13 +141,15 @@ missing_days <- missing_days[missing_days$interval==0,]#Reduces the dataset to 8
 table(missing_days$day)#Shows how many missing days on each day of the week.
 ```
 
-####Commentary
+#### Commentary
 
 The above code shows that both the complete and the missing days are spread evenly throughout the days of the week.
 
 ## What is the mean total number of steps taken per day?
 
 For this part of the assignment, you can ignore the missing values in the dataset.
+
+### Make a histogram of the total number of steps taken each day.
 
 ```{r hist1, echo = TRUE, fig.keep = 'all'}
 data2 <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
@@ -152,18 +165,37 @@ hist(daily_total_steps$x, ylim=c(0, 20),
       xlab = "Total Number of Steps on a Given Day", 
       ylab = "Number of Days", labels = TRUE)
 dev.off()
-#Calculate and report the mean and median total number of steps taken per day
-summary(daily_total_steps$x)
+```
+### Calculate and report the mean and median total number of steps taken per day.
+
+#### Commentary
+
+The question is ambiguous, so I have experimented with two approaches.  The first one mnakes the most sense to me.  I have commented out the second approach, which produces a long array of zeroes, for no real purpose.
+
+#### Code
+
+##### Mean/Median of the daily totals
+
+```{r}
+summary(daily_total_steps$x) #simple way to do it.
+```
+##### Daily Mean/Median of steps taken in each interval.
+
+```{r}
+#remove the comments to run the code.
 #daily_mean_steps <- aggregate(data2$steps, by=list(data2$date), FUN=mean)
 #daily_median_steps <- aggregate(data2$steps, by=list(data2$date), FUN=median)
+#report <- data.frame(date = daily_mean_steps$Group.1, mean = daily_mean_steps$x, 
+#median = daily_median_steps$x)
+#report
 ```
 
 ## What is the average daily activity pattern?
 
-### Commentary
+#### Commentary
 The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.
 
-###Code
+#### Code
 ```{r plot2, echo = TRUE, fig.keep = 'all'}
 ###Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
@@ -185,11 +217,11 @@ dev.off()
 
 ## Imputing missing values
 
-###Discussion
+#### Commentary
 
 As shown above, the missing days are distributed evenly between the weekdays (6) and the weekends (2).  So it was decided to impute the missing values by calculating the mean for a given interval on a given day of the week and to insert that mean into the same missing day/interval.
 
-###Code
+#### Code
 
 ```{r}
 complete_data <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
@@ -208,13 +240,13 @@ fixed_data[is.na(fixed_data$steps),]
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-###Commentary
+#### Commentary
 
 As with the previous plot, the gaps had to be removed at the ends of each hour. 
 
 The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.
 
-###Code
+#### Code
 
 ```{r combined_plot, echo = TRUE, fig.keep = 'all'}
 data4 <- data[!is.na(data$steps),]#remove the missing $steps == NA
@@ -251,3 +283,12 @@ This document was created using:
   RStudio  Version 0.98.953 - © 2009-2013 RStudio, Inc.
   
   knitr Version 1.6
+  
+  the knit2html package was loaded separately into the console.
+    #library(knitr)
+    #knit2html(input = "C:/Users/Brian/Documents/PeerAssessment1/PA1_template.Rmd", 
+    #       output = "C:/Users/Brian/Documents/PeerAssessment1/PA1_template.md")
+    
+  git gui V 1.9.4 on W7 was used to push this document to the remote repo.
+  
+###### Work completed in September, 2013.

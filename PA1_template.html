@@ -208,7 +208,31 @@ hr {
 
 <p>At the conclusion of these steps, the new repo was pushed back to GitHub, from where it can now be forked.</p>
 
-<p>##Functions</p>
+<h2>Functions</h2>
+
+<p>The following functions were developed for this assignment but are available for use elsewhere.</p>
+
+<h5>This function will return the day of the week for a given date</h5>
+
+<pre><code class="r">what_day &lt;- function(date){
+  date &lt;- as.POSIXlt(date,format=&quot;%Y-%m-%d&quot;)
+  wday &lt;- weekdays(date)
+}
+#data$day &lt;- sapply(data$date, what_day)#Uncomment to test this function.
+</code></pre>
+
+<h5>This function will adjust the interval minutes to decimal fraction of an hour.</h5>
+
+<pre><code class="r">dec_mins &lt;- function(x){
+  hours &lt;- floor(x/100) 
+  mins &lt;- (x %% 100)*100/60
+  y &lt;- as.integer(round(100*hours + mins))
+  }
+</code></pre>
+
+<h5>This function replaces missing $intervals with the average for that day/interval.</h5>
+
+<p>It will be used later in the assignment to impute missing $steps data.</p>
 
 <pre><code class="r">lookup_steps &lt;- function(average_steps, missing_days){
   ii &lt;- dim(missing_days)
@@ -222,18 +246,6 @@ hr {
   }
   return(missing_days)
 }
-#this function will return the day of the week for a given date
-what_day &lt;- function(date){
-  date &lt;- as.POSIXlt(date,format=&quot;%Y-%m-%d&quot;)
-  wday &lt;- weekdays(date)
-}
-#data$day &lt;- sapply(data$date, what_day)
-#this function will adjust the interval minutes to decimal fraction of an hour
-dec_mins &lt;- function(x){
-  hours &lt;- floor(x/100) 
-  mins &lt;- (x %% 100)*100/60
-  y &lt;- as.integer(round(100*hours + mins))
-  }
 </code></pre>
 
 <h2>Loading and preprocessing the data</h2>
@@ -245,7 +257,7 @@ data &lt;- read.csv(file = &quot;activity.csv&quot;, header = TRUE)
 
 <h3>Check the contents of the data file.</h3>
 
-<p>####Code</p>
+<h4>Code</h4>
 
 <pre><code class="r">str(data)
 </code></pre>
@@ -297,7 +309,7 @@ c3
 <pre><code>## [1] 2304
 </code></pre>
 
-<p>####Commentary</p>
+<h4>Commentary</h4>
 
 <p>The above code shows that the raw data is a dataframe composed of 17568 observations of 3 variables.</p>
 
@@ -310,9 +322,9 @@ c3
 <p>The dataframe contains 15264 complete records, 11014 of which recorded 0 steps.
 A further 2304 records have missing data ($steps == NA) which is interpreted to mean that the device was malfunctioning at these intervals.</p>
 
-<p>###Is there a pattern to the missing data?</p>
+<h3>Is there a pattern to the missing data?</h3>
 
-<p>####Code</p>
+<h4>Code</h4>
 
 <pre><code class="r">#Check the other 2 variables for NA&#39;s
 data[is.na(data$date),]
@@ -354,7 +366,7 @@ dim(data[!is.na(data$steps),])
 <pre><code>## [1] 15264
 </code></pre>
 
-<p>####Commentary</p>
+<h4>Commentary</h4>
 
 <p>The above manipulations helped to better understand the overall shape of the data.\n
 It demonstrates that:</p>
@@ -365,9 +377,9 @@ It demonstrates that:</p>
 <li>And there are 8 missing days, each with 288*5 minute intervals.</li>
 </ol>
 
-<p>#####How many complete days do we have?</p>
+<h5>How many complete days do we have?</h5>
 
-<p>####Code</p>
+<h4>Code</h4>
 
 <pre><code class="r">complete_days &lt;- data[!is.na(data$steps),]#Reduces the dataset to $steps==NA
 complete_days &lt;- complete_days[complete_days$interval==0,]#Reduces the dataset to 8 days
@@ -377,7 +389,7 @@ table(complete_days$day)#Shows how many complete days on each day of the week.
 <pre><code>## &lt; table of extent 0 &gt;
 </code></pre>
 
-<p>######Which days of the week are missing?.</p>
+<h5>Which days of the week are missing?.</h5>
 
 <pre><code class="r">data$day &lt;- sapply(data$date, what_day)
 data$day &lt;- ordered(data$day, levels = c(&quot;Monday&quot;, &quot;Tuesday&quot;, &quot;Wednesday&quot;, &quot;Thursday&quot;, 
@@ -392,13 +404,15 @@ table(missing_days$day)#Shows how many missing days on each day of the week.
 ##         2         0         1         1         2         1         1
 </code></pre>
 
-<p>####Commentary</p>
+<h4>Commentary</h4>
 
 <p>The above code shows that both the complete and the missing days are spread evenly throughout the days of the week.</p>
 
 <h2>What is the mean total number of steps taken per day?</h2>
 
 <p>For this part of the assignment, you can ignore the missing values in the dataset.</p>
+
+<h3>Make a histogram of the total number of steps taken each day.</h3>
 
 <pre><code class="r">data2 &lt;- data[!is.na(data$steps),] #Remove the rows with $steps == NA
 dim(data2) #Confirm that only NA&#39;s are removed
@@ -439,25 +453,40 @@ dev.off()
 ##         2
 </code></pre>
 
-<pre><code class="r">#Calculate and report the mean and median total number of steps taken per day
-summary(daily_total_steps$x)
+<h3>Calculate and report the mean and median total number of steps taken per day.</h3>
+
+<h4>Commentary</h4>
+
+<p>The question is ambiguous, so I have experimented with two approaches.  The first one mnakes the most sense to me.  I have commented out the second approach, which produces a long array of zeroes, for no real purpose.</p>
+
+<h4>Code</h4>
+
+<h5>Mean/Median of the daily totals</h5>
+
+<pre><code class="r">summary(daily_total_steps$x) #simple way to do it.
 </code></pre>
 
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##      41    8840   10800   10800   13300   21200
 </code></pre>
 
-<pre><code class="r">#daily_mean_steps &lt;- aggregate(data2$steps, by=list(data2$date), FUN=mean)
+<h5>Daily Mean/Median of steps taken in each interval.</h5>
+
+<pre><code class="r">#remove the comments to run the code.
+#daily_mean_steps &lt;- aggregate(data2$steps, by=list(data2$date), FUN=mean)
 #daily_median_steps &lt;- aggregate(data2$steps, by=list(data2$date), FUN=median)
+#report &lt;- data.frame(date = daily_mean_steps$Group.1, mean = daily_mean_steps$x, 
+#median = daily_median_steps$x)
+#report
 </code></pre>
 
 <h2>What is the average daily activity pattern?</h2>
 
-<h3>Commentary</h3>
+<h4>Commentary</h4>
 
 <p>The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.</p>
 
-<p>###Code</p>
+<h4>Code</h4>
 
 <pre><code class="r">###Make a time series plot (i.e. type = &quot;l&quot;) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
@@ -490,11 +519,11 @@ p
 
 <h2>Imputing missing values</h2>
 
-<p>###Discussion</p>
+<h4>Commentary</h4>
 
 <p>As shown above, the missing days are distributed evenly between the weekdays (6) and the weekends (2).  So it was decided to impute the missing values by calculating the mean for a given interval on a given day of the week and to insert that mean into the same missing day/interval.</p>
 
-<p>###Code</p>
+<h4>Code</h4>
 
 <pre><code class="r">complete_data &lt;- data[!is.na(data$steps),] #Remove the rows with $steps == NA
 average_steps &lt;- aggregate(complete_data$steps, by=list(complete_data$day, complete_data$interval),
@@ -516,13 +545,13 @@ fixed_data[is.na(fixed_data$steps),]
 
 <h2>Are there differences in activity patterns between weekdays and weekends?</h2>
 
-<p>###Commentary</p>
+<h4>Commentary</h4>
 
 <p>As with the previous plot, the gaps had to be removed at the ends of each hour. </p>
 
 <p>The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.</p>
 
-<p>###Code</p>
+<h4>Code</h4>
 
 <pre><code class="r">data4 &lt;- data[!is.na(data$steps),]#remove the missing $steps == NA
 #Convert minutes to 100ths of an hour to remove gaps in plot between 55 an 60 minutes.
@@ -586,6 +615,15 @@ dev.off()
 <p>RStudio  Version 0.98.953 - © 2009-2013 RStudio, Inc.</p>
 
 <p>knitr Version 1.6</p>
+
+<p>the knit2html package was loaded separately into the console.
+    #library(knitr)
+    #knit2html(input = &ldquo;C:/Users/Brian/Documents/PeerAssessment1/PA1_template.Rmd&rdquo;, 
+    #       output = &ldquo;C:/Users/Brian/Documents/PeerAssessment1/PA1_template.md&rdquo;)</p>
+
+<p>git gui V 1.9.4 on W7 was used to push this document to the remote repo.</p>
+
+<h6>Work completed in September, 2013.</h6>
 
 </body>
 

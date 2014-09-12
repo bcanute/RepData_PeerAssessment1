@@ -16,7 +16,32 @@ and placed in my local repo: PeerAssessment1
 
 At the conclusion of these steps, the new repo was pushed back to GitHub, from where it can now be forked.
 
-##Functions
+## Functions
+
+The following functions were developed for this assignment but are available for use elsewhere.
+
+##### This function will return the day of the week for a given date
+
+```r
+what_day <- function(date){
+  date <- as.POSIXlt(date,format="%Y-%m-%d")
+  wday <- weekdays(date)
+}
+#data$day <- sapply(data$date, what_day)#Uncomment to test this function.
+```
+##### This function will adjust the interval minutes to decimal fraction of an hour.
+
+```r
+dec_mins <- function(x){
+  hours <- floor(x/100) 
+  mins <- (x %% 100)*100/60
+  y <- as.integer(round(100*hours + mins))
+  }
+```
+
+##### This function replaces missing $intervals with the average for that day/interval.
+
+It will be used later in the assignment to impute missing $steps data.
 
 ```r
 lookup_steps <- function(average_steps, missing_days){
@@ -31,18 +56,6 @@ lookup_steps <- function(average_steps, missing_days){
   }
   return(missing_days)
 }
-#this function will return the day of the week for a given date
-what_day <- function(date){
-  date <- as.POSIXlt(date,format="%Y-%m-%d")
-  wday <- weekdays(date)
-}
-#data$day <- sapply(data$date, what_day)
-#this function will adjust the interval minutes to decimal fraction of an hour
-dec_mins <- function(x){
-  hours <- floor(x/100) 
-  mins <- (x %% 100)*100/60
-  y <- as.integer(round(100*hours + mins))
-  }
 ```
 
 ## Loading and preprocessing the data
@@ -55,7 +68,7 @@ data <- read.csv(file = "activity.csv", header = TRUE)
 ```
 ### Check the contents of the data file.
 
-####Code
+#### Code
 
 
 ```r
@@ -120,7 +133,7 @@ c3
 ## [1] 2304
 ```
 
-####Commentary
+#### Commentary
 
 The above code shows that the raw data is a dataframe composed of 17568 observations of 3 variables.
 
@@ -131,9 +144,9 @@ The above code shows that the raw data is a dataframe composed of 17568 observat
 The dataframe contains 15264 complete records, 11014 of which recorded 0 steps.
 A further 2304 records have missing data ($steps == NA) which is interpreted to mean that the device was malfunctioning at these intervals.
 
-###Is there a pattern to the missing data?
+### Is there a pattern to the missing data?
 
-####Code
+#### Code
 
 
 
@@ -187,7 +200,7 @@ dim(data[!is.na(data$steps),])
 ## [1] 15264
 ```
 
-####Commentary
+#### Commentary
 
 The above manipulations helped to better understand the overall shape of the data.\n
 It demonstrates that:
@@ -196,9 +209,9 @@ It demonstrates that:
 2. There are 53 complete days, each with 288*5 minute intervals.
 3. And there are 8 missing days, each with 288*5 minute intervals.
 
-#####How many complete days do we have?
+##### How many complete days do we have?
 
-####Code
+#### Code
 
 
 ```r
@@ -211,7 +224,7 @@ table(complete_days$day)#Shows how many complete days on each day of the week.
 ## < table of extent 0 >
 ```
 
-######Which days of the week are missing?.
+##### Which days of the week are missing?.
 
 
 ```r
@@ -229,13 +242,15 @@ table(missing_days$day)#Shows how many missing days on each day of the week.
 ##         2         0         1         1         2         1         1
 ```
 
-####Commentary
+#### Commentary
 
 The above code shows that both the complete and the missing days are spread evenly throughout the days of the week.
 
 ## What is the mean total number of steps taken per day?
 
 For this part of the assignment, you can ignore the missing values in the dataset.
+
+### Make a histogram of the total number of steps taken each day.
 
 
 ```r
@@ -284,28 +299,43 @@ dev.off()
 ## RStudioGD 
 ##         2
 ```
+### Calculate and report the mean and median total number of steps taken per day.
+
+#### Commentary
+
+The question is ambiguous, so I have experimented with two approaches.  The first one mnakes the most sense to me.  I have commented out the second approach, which produces a long array of zeroes, for no real purpose.
+
+#### Code
+
+##### Mean/Median of the daily totals
+
 
 ```r
-#Calculate and report the mean and median total number of steps taken per day
-summary(daily_total_steps$x)
+summary(daily_total_steps$x) #simple way to do it.
 ```
 
 ```
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##      41    8840   10800   10800   13300   21200
 ```
+##### Daily Mean/Median of steps taken in each interval.
+
 
 ```r
+#remove the comments to run the code.
 #daily_mean_steps <- aggregate(data2$steps, by=list(data2$date), FUN=mean)
 #daily_median_steps <- aggregate(data2$steps, by=list(data2$date), FUN=median)
+#report <- data.frame(date = daily_mean_steps$Group.1, mean = daily_mean_steps$x, 
+#median = daily_median_steps$x)
+#report
 ```
 
 ## What is the average daily activity pattern?
 
-### Commentary
+#### Commentary
 The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.
 
-###Code
+#### Code
 
 ```r
 ###Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
@@ -342,11 +372,11 @@ dev.off()
 
 ## Imputing missing values
 
-###Discussion
+#### Commentary
 
 As shown above, the missing days are distributed evenly between the weekdays (6) and the weekends (2).  So it was decided to impute the missing values by calculating the mean for a given interval on a given day of the week and to insert that mean into the same missing day/interval.
 
-###Code
+#### Code
 
 
 ```r
@@ -371,13 +401,13 @@ fixed_data[is.na(fixed_data$steps),]
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-###Commentary
+#### Commentary
 
 As with the previous plot, the gaps had to be removed at the ends of each hour. 
 
 The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.
 
-###Code
+#### Code
 
 
 ```r
@@ -450,3 +480,12 @@ This document was created using:
   RStudio  Version 0.98.953 - © 2009-2013 RStudio, Inc.
   
   knitr Version 1.6
+  
+  the knit2html package was loaded separately into the console.
+    #library(knitr)
+    #knit2html(input = "C:/Users/Brian/Documents/PeerAssessment1/PA1_template.Rmd", 
+    #       output = "C:/Users/Brian/Documents/PeerAssessment1/PA1_template.md")
+    
+  git gui V 1.9.4 on W7 was used to push this document to the remote repo.
+  
+###### Work completed in September, 2013.
