@@ -178,7 +178,7 @@ plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
     xlab = "Time of day (24 hour clock), starting at midnight.",
     ylab = "Average number of steps per minute.",
     main = "Average activity level across the day (Steps per minute.)")
-#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png")
+dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png")
 dev.off()
 ```
 
