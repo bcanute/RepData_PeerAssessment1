@@ -274,26 +274,15 @@ hist(daily_total_steps$x, ylim=c(0, 20),
      main = "Histogram of Each Day's Total Daily Steps", breaks = 10,
       xlab = "Total Number of Steps on a Given Day", 
       ylab = "Number of Days", labels = TRUE)
+#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
+dev.off()
 ```
 
 ![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
 
-```r
-dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
 ```
-
-```
-## png 
-##   3
-```
-
-```r
-dev.off()
-```
-
-```
-## pdf 
-##   2
+## RStudioGD 
+##         2
 ```
 
 ```r
@@ -334,7 +323,7 @@ plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
     main = "Average activity level across the day (Steps per minute.)")
 ```
 
-![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-81.png) 
 
 ```r
 dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/plot2.png")
@@ -353,9 +342,11 @@ dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figur
 dev.off()
 ```
 
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-82.png) 
+
 ```
-## null device 
-##           1
+## RStudioGD 
+##         2
 ```
 
 ## Imputing missing values
@@ -452,15 +443,17 @@ combined_plot <- xyplot(steps ~ interval | day , data=combined.df, type = "l", l
 print(combined_plot)
 ```
 
-![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-101.png) 
 
 ```r
 dev.off()
 ```
 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-102.png) 
+
 ```
-## null device 
-##           1
+## RStudioGD 
+##         2
 ```
 
 ## Software
