@@ -146,13 +146,11 @@ str(data2)
 
 #Count the total steps for each day for the histogram
 daily_total_steps <- aggregate(data2$steps, by=list(data2$date), FUN=sum)
-hist(daily_total_steps$x)
-dim(daily_total_steps)
 hist(daily_total_steps$x, ylim=c(0, 20), 
      main = "Histogram of Each Day's Total Daily Steps", breaks = 10,
       xlab = "Total Number of Steps on a Given Day", 
       ylab = "Number of Days", labels = TRUE)
-#dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/PA1_template_files/figure-html/hist1.png")
+dev.copy(png, "C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
 dev.off()
 #Calculate and report the mean and median total number of steps taken per day
 summary(daily_total_steps$x)
