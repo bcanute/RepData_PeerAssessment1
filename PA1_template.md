@@ -6,6 +6,8 @@
 
 These are the notes of my exploration of the raw data.  They are clearly not suitable for publication to any audience not familiar with the R language and the general approach to data exploration, employed in this context.  They simply form a complete record of my exploration and as such they do not elucidate this particular dataset and its implications all that clearly.  However, these transformations of the data form the foundations for the preparation of a publishable report.
 
+In the meantime, to the poor unfortunate peer reviewer, I offer my heartfelt apologies for all the spaghetti code. Brace yourself for an ugly journey into cyberland.
+
 ### Original Documentation
 
 The instructions and data for this assignment were forked from 
@@ -299,6 +301,11 @@ dev.off()
 ## RStudioGD 
 ##         2
 ```
+
+#### Commentary
+
+The second histogram of the amended data, when compared with the first histogram of the original data, indicates a slight heightening of the middle of the distribution, which is as expected, given the use of average values to impute the missing data.  Alternative strategies may need to be explored.
+
 ### Calculate and report the mean and median total number of steps taken per day.
 
 #### Commentary
@@ -332,6 +339,8 @@ summary(daily_total_steps$x) #simple way to do it.
 
 ## What is the average daily activity pattern?
 
+##### Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
 #### Commentary
 The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.
 
@@ -345,7 +354,7 @@ data3$interval <- sapply(data3$interval, dec_mins)#convert minutes to a decimal
 
 library(ggplot2)
 data3$interval <- data3$interval/100
-data3$steps <- data3$steps/5
+
 interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
 png("C:/Users/Brian/Documents/PeerAssessment1/figure/plot2.png")
 p <- plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
@@ -369,6 +378,27 @@ dev.off()
 ## RStudioGD 
 ##         2
 ```
+
+#### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+#### Code
+
+```r
+n.data3 <- data[!is.na(data$steps),]
+n.interval_mean_steps <- aggregate(n.data3$steps, by=list(n.data3$interval), FUN=mean)
+n.interval_mean_steps$x <- as.integer(n.interval_mean_steps$x)
+max_mean_steps <- n.interval_mean_steps[n.interval_mean_steps$x == (max(n.interval_mean_steps$x)),]
+max_mean_steps
+```
+
+```
+##     Group.1   x
+## 104     835 206
+```
+
+#### Commentary
+
+On average, the interval at 835 was the most active with an average of 206 steps in 5 minutes, possibly when the subject was running to catch the bus??????
 
 ## Imputing missing values
 
@@ -399,13 +429,78 @@ fixed_data[is.na(fixed_data$steps),]
 ## <0 rows> (or 0-length row.names)
 ```
 
+#### Histogram of the daily totals after the missing data were amended.
+
+#### Code
+
+```r
+fixed_daily_total_steps <- aggregate(fixed_data$steps, by=list(fixed_data$date), FUN=sum)
+png("C:/Users/Brian/Documents/PeerAssessment1/figure/hist2.png")
+hist(fixed_daily_total_steps$x, ylim=c(0, 20), 
+     main = "Histogram of Each Day's Total Daily Steps (Amended Data)", breaks = 10,
+      xlab = "Total Number of Steps on a Given Day", 
+      ylab = "Number of Days", labels = TRUE)
+dev.off()
+```
+
+![plot of chunk hist2](figure/hist2.png) 
+
+```
+## RStudioGD 
+##         2
+```
+
+#### Mean/Median of the daily totals after the missing data were amended.
+
+#### Code
+
+
+```r
+summary(fixed_daily_total_steps$x) #amended records.
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8920   11000   10800   12800   21200
+```
+
+```r
+summary(daily_total_steps$x) #original records.
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8840   10800   10800   13300   21200
+```
+
+```r
+original <- data.frame(data.set = "Original ", mean = mean(daily_total_steps$x), 
+                       median = median(daily_total_steps$x))
+amended <- data.frame(data.set = "Amended ", mean = mean(fixed_daily_total_steps$x), 
+                      median = median(fixed_daily_total_steps$x))
+display <- rbind(original, amended)
+```
+
+#### Commentary
+
+The amending of the missing data by using the mean-interval-steps for the given day of the week raised both the mean and the median for the whole dataset by approximately 0.65%. 
+
+
+```r
+display
+```
+
+```
+##    data.set  mean median
+## 1 Original  10766  10765
+## 2  Amended  10821  11015
+```
+
 ## Are there differences in activity patterns between weekdays and weekends?
 
 #### Commentary
 
 As with the previous plot, the gaps had to be removed at the ends of each hour. 
-
-The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.
 
 #### Code
 
@@ -472,6 +567,10 @@ dev.off()
 ## RStudioGD 
 ##         2
 ```
+
+#### Commentary
+
+The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.
 
 ## Software
 
