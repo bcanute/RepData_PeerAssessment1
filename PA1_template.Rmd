@@ -6,7 +6,7 @@
 
 These are the notes of my exploration of the raw data.  They are clearly not suitable for publication to any audience not familiar with the R language and the general approach to data exploration, employed in this context.  They simply form a complete record of my exploration and as such they do not elucidate this particular dataset and its implications all that clearly.  However, these transformations of the data form the foundations for the preparation of a publishable report.
 
-In the meantime, to the poor unfortunate peer reviewer, I offer my heartfelt apologies for all the spaghetti code. Brace yourself for an ugly journey into cyberland.
+In the meantime, to the poor unfortunate peer reviewer, I offer my heartfelt apologies for the rambling nature of this document. Brace yourself for an ugly journey into cyberland.
 
 ### Original Documentation
 
