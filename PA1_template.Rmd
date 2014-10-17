@@ -135,7 +135,7 @@ str(data1cast)
 
 The project instructions call for a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-```{r plot1}
+```{r plot2}
 data2 <- data.complete#remove the missing records from the raw data.
 ## recast the data by 5 min. interval, then calculate mean for each interval
         data2melt <- melt(data2, id.vars = c("date", "interval"), 

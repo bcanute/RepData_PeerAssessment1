@@ -221,7 +221,7 @@ data2 <- data.complete#remove the missing records from the raw data.
              main = "Plot 2: Average Steps per 5 Minute Interval")
 ```
 
-![plot of chunk plot1](figure/plot1.png) 
+![plot of chunk plot2](figure/plot2.png) 
 #### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 
