@@ -1,80 +1,72 @@
+---
+output: pdf_document
+---
 # Reproducible Research: Peer Assessment 1
 
-## Background
+### Notes for the Peer Reviewer
 
-### Embargo
+Thank you for reviewing my work.
 
-These are the notes of my exploration of the raw data.  They are clearly not suitable for publication to any audience not familiar with the R language and the general approach to data exploration, employed in this context.  They simply form a complete record of my exploration and as such they do not elucidate this particular dataset and its implications all that clearly.  However, these transformations of the data form the foundations for the preparation of a publishable report.
+The most suitable document for reading in Github is **PA1_template.MD**. In my local browser, I was able to use the .html file, which only displays source code Github. The original .RMD was created in RStudio as was the following code which was used, external to this document, to produce the output files from the RMD file:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;library(knitr)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setwd('~/PeerAssessment1')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;knit2html(input = 'PA1_template.Rmd')
 
-In the meantime, to the poor unfortunate peer reviewer, I offer my heartfelt apologies for the rambling nature of this document. Brace yourself for an ugly journey into cyberland.
+### Project Background
 
-### Original Documentation
+The instructions and data for this project were forked from https://github.com/rdpeng/RepData_PeerAssessment1  
+and placed in my local repo: https://github.com/bcanute/RepData_PeerAssessment1.  I then cloned this site to my local machine at C:/Users/Brian/Documents/PeerAssessment1/, which I set as my working directory in RStudio.
 
-The instructions and data for this assignment were forked from 
+It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up.
 
-https://github.com/rdpeng/RepData_PeerAssessment1  
+These types of devices are part of the "quantified self movement"– a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or simply because they are tech geeks. However, these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpretting the data.
 
-and placed in my local repo: PeerAssessment1
+This project makes use of data from recorded with a personal activity monitoring device. This device collects data at 5 minute intervals throughout the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and includes the number of steps taken in 5 minute intervals each day.
 
-At the conclusion of these steps, the new repo was pushed back to GitHub, from where it can now be forked.
+### Initial Setup
 
-## Functions
+The following packages are required to process this document and its data.
 
-The following functions were developed for this assignment but are available for use elsewhere.
-
-##### This function will return the day of the week for a given date
-
-```r
-what_day <- function(date){
-  date <- as.POSIXlt(date,format="%Y-%m-%d")
-  wday <- weekdays(date)
-}
-#data$day <- sapply(data$date, what_day)#Uncomment to test this function.
-```
-##### This function will adjust the interval minutes to decimal fraction of an hour.
 
 ```r
-dec_mins <- function(x){
-  hours <- floor(x/100) 
-  mins <- (x %% 100)*100/60
-  y <- as.integer(round(100*hours + mins))
-  }
+library(knitr)
+library(stringr)
+library(lubridate)
+library(reshape2)
+library(ggplot2)
+library(scales)
+library(markdown)
+opts_chunk$set(options(scipen = 6, digits = 2))
 ```
 
-##### This function replaces missing $intervals with the average for that day/interval.
+### Locate and Store the Data File
 
-It will be used later in the assignment to impute missing $steps data.
+If the data file fails to appear in the forked assignment, it can be downloaded from this site (fileurl in the code.)  The following code will locate the data file on the net, download it, unzip it and store it as activity.csv file in the project's working directory.
+
 
 ```r
-lookup_steps <- function(average_steps, missing_days){
-  ii <- dim(missing_days)
-  i <- ii[1]
-  for(n in 1:i){
-    day <- missing_days[n, "day"]
-    interval <- missing_days[n, "interval"]
-    missing_days[n, "steps"] <- average_steps[(average_steps$day==day)
-                                  &(average_steps$interval==interval), "steps"]
-    next
-  }
-  return(missing_days)
+if (!file.exists("activity.zip")) {  
+  fileurl = "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+  download.file(fileurl, destfile = "activity.zip")
+  unzip("activity.zip")
 }
 ```
 
 ## Loading and preprocessing the data
 
+Once the raw data has been downloaded and unzipped it can be loaded more conveniently from here.
+
 
 ```r
-#setwd("C:/Users/Brian/Documents/PeerAssessment1")#Set WD to local repo.
-unzip("activity.zip")#leaves the data file in the WD.
-data <- read.csv(file = "activity.csv", header = TRUE)
+data.raw <- read.csv(file = "activity.csv", header = TRUE)
 ```
 ### Check the contents of the data file.
 
-#### Code
+The following functions are useful for a routine inspection of the raw dataset.
 
 
 ```r
-str(data)
+str(data.raw)
 ```
 
 ```
@@ -85,506 +77,391 @@ str(data)
 ```
 
 ```r
-summary(data)
+summary(data.raw)
 ```
 
 ```
-##      steps               date          interval   
-##  Min.   :  0.0   2012-10-01:  288   Min.   :   0  
-##  1st Qu.:  0.0   2012-10-02:  288   1st Qu.: 589  
-##  Median :  0.0   2012-10-03:  288   Median :1178  
-##  Mean   : 37.4   2012-10-04:  288   Mean   :1178  
-##  3rd Qu.: 12.0   2012-10-05:  288   3rd Qu.:1766  
-##  Max.   :806.0   2012-10-06:  288   Max.   :2355  
-##  NA's   :2304    (Other)   :15840
-```
-
-```r
-d <<- dim(data)
-d
-```
-
-```
-## [1] 17568     3
+##      steps              date          interval   
+##  Min.   :  0    2012-10-01:  288   Min.   :   0  
+##  1st Qu.:  0    2012-10-02:  288   1st Qu.: 589  
+##  Median :  0    2012-10-03:  288   Median :1178  
+##  Mean   : 37    2012-10-04:  288   Mean   :1178  
+##  3rd Qu.: 12    2012-10-05:  288   3rd Qu.:1766  
+##  Max.   :806    2012-10-06:  288   Max.   :2355  
+##  NA's   :2304   (Other)   :15840
 ```
 
 ```r
-c1 <<- sum(!is.na(data$steps))#Steps recorded as anticipated
-c1
+names(data.raw)
 ```
 
 ```
-## [1] 15264
-```
-
-```r
-c2 <<- sum((!is.na(data$steps)) & (data$steps == 0))#Zero Steps recorded
-c2
-```
-
-```
-## [1] 11014
+## [1] "steps"    "date"     "interval"
 ```
 
 ```r
-c3 <<- sum(is.na(data$steps))#NA
-c3
+head(data.raw)
 ```
 
 ```
-## [1] 2304
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
 ```
 
-#### Commentary
+The dataset is composed of 17568 observations of 3 variables.
 
-The above code shows that the raw data is a dataframe composed of 17568 observations of 3 variables.
+**The 3 variables are:**
 
 * $steps    (integer)the number of steps taken in that interval 
 * $date     (character factor)the date of the recording
-* $interval (integer)the time of the recording in 5 minute intervals (hhmm)
+* $interval (integer)the time of the recording in 5 minute intervals, equivalent to hhmm.
 
-The dataframe contains 15264 complete records, 11014 of which recorded 0 steps.
-A further 2304 records have missing data ($steps == NA) which is interpreted to mean that the device was malfunctioning at these intervals.
+**Missing Data ($steps==NA)**
+
+15264 records are complete and 2304 records failed to record the number of steps taken in that period, presumably because the device failed to operate.
+
+### Tidy the Data
+
+Each $interval variable represents a 5 minute period of measurement within 24 hour day.  So, the $intervals prior to 1000 must be converted into  four digit Posixct format, by inserting leading 0's.
+
+I have also created a fourth variable, $iposixct, which converts $date + $interval into date format, for later use in the assignment.
+
+
+```r
+data.tidy  <- data.raw
+data.tidy$interval <- str_pad(data.tidy$interval, width = 4, pad = "0") 
+data.tidy$iposixct <- paste(data.tidy$date, data.tidy$interval)          
+data.tidy$iposixct <- parse_date_time(data.tidy$iposixct, "ymd HM")
+
+data.missing <- data.tidy[!complete.cases(data.raw),]  
+data.complete <- data.tidy[complete.cases(data.raw),]  
+```
+**Zero Activity ($steps==0)**
+
+It should be noted that a large number of intervals (n = 11014) recorded 0 steps, indicating that the subject was inactive, although the machine was working.
+    
+## Make a histogram of the total number of steps taken each day.
+
+The project instructions state that for this part of the assignment, you can ignore the missing values in the dataset.
+
+    1. Make a histogram of the total number of steps taken each day
+
+    2. Calculate and report the mean and median total number of steps taken per day
+
+
+```r
+data1 <- data.complete#ignore the missing records.
+#recast the data to show the total steps taken on each day.
+    data1melt <- melt(data1, id.vars = "date", measure.vars="steps" ) 
+    data1cast <- dcast(data1melt, date ~ variable, fun.aggregate = sum)
+
+## create the histogram of the daily total steps taken
+    par(bg = "#F4F4F7")
+    hist(data1cast$steps, main = "Plot 1: Histogram of Each Day's Total Daily Steps",
+         xlab = "Total Number of Steps on a Given Day", breaks = 20, col = "gray",
+         ylab= "Number of Days", labels = TRUE)
+    abline(v=mean(data1cast$steps),col='red')
+    abline(v=median(data1cast$steps),col='blue')
+```
+
+![plot of chunk hist1](figure/hist1.png) 
+
+### Calculate and report the mean and median total number of steps taken per day.
+
+
+```r
+summary(data1cast$steps) #simple way to do it.
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8840   10800   10800   13300   21200
+```
+
+```r
+str(data1cast)
+```
+
+```
+## 'data.frame':	53 obs. of  2 variables:
+##  $ date : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 2 3 4 5 6 7 9 10 11 12 ...
+##  $ steps: int  126 11352 12116 13294 15420 11015 12811 9900 10304 17382 ...
+```
+
+**The mean (10766.19) and the median (10765) are virtually identical.**  The mean (red) and median (blue) are shown on the above histogram.  Because the two values are virtually coincident with each other, the blue median overlays the red mean.
+
+## What is the average daily activity pattern?
+
+The project instructions call for a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+
+```r
+data2 <- data.complete#remove the missing records from the raw data.
+## recast the data by 5 min. interval, then calculate mean for each interval
+        data2melt <- melt(data2, id.vars = c("date", "interval"), 
+                         measure.vars= "steps" )
+
+        data2cast <- dcast(data2melt, interval ~ variable, fun.aggregate = mean)
+
+
+###     add a column with POSIXct interval for X axis then plot.
+
+        data2cast$intervalct <- parse_date_time (data2cast$interval, "HM")
+
+        par(bg = "#F4F4F7")
+
+        plot(x = data2cast$intervalct, y = data2cast$steps, type="l",  
+             ylab = "Mean Steps per 5 Minute Interval", 
+             xlab = "Time of day (24 hour clock), starting at midnight.",
+             main = "Plot 2: Average Steps per 5 Minute Interval")
+```
+
+![plot of chunk plot1](figure/plot1.png) 
+#### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+
+```r
+        data2stepmax <- data2cast[(max(data2cast$steps)==data2cast$steps),]
+        data2stepmax
+```
+
+```
+##     interval steps          intervalct
+## 104     0835   206 0000-01-01 08:35:00
+```
+
+**The time period with the highest average number of steps was 08:35 with 206.17 steps.**
+
+## Imputing missing values
 
 ### Is there a pattern to the missing data?
 
-#### Code
+A complete day's records is composed of 288 intervals.
 
+Dividing the number of missing records by the number of intervals in a day produces an integer. This indicates that the missing data is confined to 8 missing days for which there are no records.  
 
-
-```r
-#Check the other 2 variables for NA's
-data[is.na(data$date),]
-```
-
-```
-## [1] steps    date     interval
-## <0 rows> (or 0-length row.names)
-```
-
-```r
-data[is.na(data$interval),]
-```
-
-```
-## [1] steps    date     interval
-## <0 rows> (or 0-length row.names)
-```
-
-```r
-#We appear to have 61 complete days of 288 * 5 minute intervals.
-e1 <<- c1/288
-#So, we have 8 complete days of missing $steps == NA
-missingdays <- (data[is.na(data$steps),"date"])
-length(missingdays)
-```
-
-```
-## [1] 2304
-```
-
-```r
-a1 <- length(unique(missingdays))
-e3 <<- c3/288
-#This leaves us with 53*288 intervals of zero and non-zero data
-dim(data[!is.na(data$steps),])
-```
-
-```
-## [1] 15264     3
-```
-
-```r
-53*288
-```
-
-```
-## [1] 15264
-```
-
-#### Commentary
-
-The above manipulations helped to better understand the overall shape of the data.\n
-It demonstrates that:
-
-1. All the missing NA's are contained in $steps variable.
-2. There are 53 complete days, each with 288*5 minute intervals.
-3. And there are 8 missing days, each with 288*5 minute intervals.
-
-##### How many complete days do we have?
-
-#### Code
-
-
-```r
-complete_days <- data[!is.na(data$steps),]#Reduces the dataset to $steps==NA
-complete_days <- complete_days[complete_days$interval==0,]#Reduces the dataset to 8 days
-table(complete_days$day)#Shows how many complete days on each day of the week.
-```
-
-```
-## < table of extent 0 >
-```
+This means that the data set is composed of 53 complete days and  8 missing days, for a total of 61 day's records.
 
 ##### Which days of the week are missing?.
 
 
 ```r
-data$day <- sapply(data$date, what_day)
-data$day <- ordered(data$day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", 
-                                           "Friday", "Saturday", "Sunday"))
-missing_days <- data[is.na(data$steps),]#Reduces the dataset to $steps==NA
-missing_days <- missing_days[missing_days$interval==0,]#Reduces the dataset to 8 days
-table(missing_days$day)#Shows how many missing days on each day of the week.
+data3 <- data.tidy#properly formatted records with missing records included.
+data3$day <- wday(data3$date, label = TRUE)#label the days of the week.
+```
+
+Missing Days:
+
+```r
+#Select the first record for each of the 61 different days.
+table(data3$day[is.na(data3$steps)&data3$interval=="0000"])
 ```
 
 ```
 ## 
-##    Monday   Tuesday Wednesday  Thursday    Friday  Saturday    Sunday 
-##         2         0         1         1         2         1         1
+##   Sun   Mon  Tues   Wed Thurs   Fri   Sat 
+##     1     2     0     1     1     2     1
+```
+Complete Days:
+
+```r
+table(data3$day[(!is.na(data3$steps))&data3$interval=="0000"])
 ```
 
-#### Commentary
+```
+## 
+##   Sun   Mon  Tues   Wed Thurs   Fri   Sat 
+##     7     7     9     8     8     7     7
+```
 
-The above code shows that both the complete and the missing days are spread evenly throughout the days of the week.
+The missing days and the complete days are spread evenly throughout the working week and the weekend.
 
-## What is the mean total number of steps taken per day?
+However, in a later section of the assignment it will be shown that there is a significant difference in the interval-activity patterns of the weekdays compared with the weekends.  
 
-For this part of the assignment, you can ignore the missing values in the dataset.
+### Strategy for imputing data into the missing records.
 
-### Make a histogram of the total number of steps taken each day.
+Therefore, it was decided to impute the missing data by:
+
+1. Identifying the mean $steps in the complete data for the weekdays and the weekends.
+2. Separating the missing data into weekdays and weekends, and
+3. Imputing each missing group (weekdays and weekends) with its own set of mean interval-steps.
 
 
 ```r
-data2 <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
-dim(data2) #Confirm that only NA's are removed
-```
+data4 <- data.tidy
+#Give each date its day of the week as an integer.  1 = Sunday......7 = Saturday.
+data4$day <- wday(data4$date)
+#Create a new factor separating weekdays from weekends.
+data4$weekend <- "weekday"
+data4[data4$day==1|data4$day==7,"weekend"] <- "weekend"
+#Separate missing records from complete records.
+data4.missing <- data4[!complete.cases(data4),]
+data4.complete <- data4[complete.cases(data4),]
 
-```
-## [1] 15264     4
+#Calculate the interval means of the complete records.
+data4.complete.melt <- melt(data4.complete, id.vars=c("weekend", "interval"), measure.vars="steps")
+data4.complete.cast <- dcast(data4.complete.melt, weekend +interval ~ variable, fun.aggregate = mean)
+
+#Insert the weekend means into the missing weekend records.
+data4.complete.weekends <- data4.complete.cast[data4.complete.cast$weekend=="weekend",]
+data4.missing$steps[data4.missing$weekend=="weekend"] <- data4.complete.weekends$steps
+
+#Insert the weekday means into the missing weekday records.
+data4.complete.weekdays <- data4.complete.cast[data4.complete.cast$weekend=="weekday",]
+data4.missing$steps[data4.missing$weekend=="weekday"] <- data4.complete.weekdays$steps
+
+#Reconnect the complete records with the imputed missing records.
+data4.imputed <- rbind(data4.complete, data4.missing)
 ```
 
 ```r
-length(unique(data2$date)) #Confirm the number of days of complete data (see previous calculation)
-```
-
-```
-## [1] 53
-```
-
-```r
-str(data2)
-```
-
-```
-## 'data.frame':	15264 obs. of  4 variables:
-##  $ steps   : int  0 0 0 0 0 0 0 0 0 0 ...
-##  $ date    : Factor w/ 61 levels "2012-10-01","2012-10-02",..: 2 2 2 2 2 2 2 2 2 2 ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
-##  $ day     : Ord.factor w/ 7 levels "Monday"<"Tuesday"<..: 2 2 2 2 2 2 2 2 2 2 ...
-```
-
-```r
-#Count the total steps for each day for the histogram
-daily_total_steps <- aggregate(data2$steps, by=list(data2$date), FUN=sum)
-png("C:/Users/Brian/Documents/PeerAssessment1/figure/hist1.png")
-hist(daily_total_steps$x, ylim=c(0, 20), 
-     main = "Histogram of Each Day's Total Daily Steps", breaks = 10,
-      xlab = "Total Number of Steps on a Given Day", 
-      ylab = "Number of Days", labels = TRUE)
-dev.off()
-```
-
-![plot of chunk hist1](figure/hist1.png) 
-
-```
-## RStudioGD 
-##         2
-```
-
-#### Commentary
-
-The second histogram of the amended data, when compared with the first histogram of the original data, indicates a slight heightening of the middle of the distribution, which is as expected, given the use of average values to impute the missing data.  Alternative strategies may need to be explored.
-
-### Calculate and report the mean and median total number of steps taken per day.
-
-#### Commentary
-
-The question is ambiguous, so I have experimented with two approaches.  The first one mnakes the most sense to me.  I have commented out the second approach, which produces a long array of zeroes, for no real purpose.
-
-#### Code
-
-##### Mean/Median of the daily totals
-
-
-```r
-summary(daily_total_steps$x) #simple way to do it.
+summary(data4.imputed$steps)
 ```
 
 ```
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##      41    8840   10800   10800   13300   21200
-```
-##### Daily Mean/Median of steps taken in each interval.
-
-
-```r
-#remove the comments to run the code.
-#daily_mean_steps <- aggregate(data2$steps, by=list(data2$date), FUN=mean)
-#daily_median_steps <- aggregate(data2$steps, by=list(data2$date), FUN=median)
-#report <- data.frame(date = daily_mean_steps$Group.1, mean = daily_mean_steps$x, 
-#median = daily_median_steps$x)
-#report
-```
-
-## What is the average daily activity pattern?
-
-##### Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-
-#### Commentary
-The dec_mins function constructed up in the Functions section of this document was used to rid the plot of the gaps between the 55th and the 60th minute of each hour.
-
-#### Code
-
-```r
-###Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-
-data3 <- data[!is.na(data$steps),]
-data3$interval <- sapply(data3$interval, dec_mins)#convert minutes to a decimal
-
-library(ggplot2)
-data3$interval <- data3$interval/100
-
-interval_mean_steps <- aggregate(data3$steps, by=list(data3$interval), FUN=mean)
-png("C:/Users/Brian/Documents/PeerAssessment1/figure/plot2.png")
-p <- plot(interval_mean_steps, type = "l", xaxp = c(0, 24, 4),
-    xlab = "Time of day (24 hour clock), starting at midnight.",
-    ylab = "Average number of steps per minute.",
-    main = "Average activity level across the day (Steps per minute.)")
-p
-```
-
-```
-## NULL
+##       0       0       0      37      24     806
 ```
 
 ```r
-dev.off()
+summary(data4$steps)
 ```
 
-![plot of chunk plot2](figure/plot2.png) 
-
 ```
-## RStudioGD 
-##         2
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##       0       0       0      37      12     806    2304
 ```
-
-#### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-
-#### Code
 
 ```r
-n.data3 <- data[!is.na(data$steps),]
-n.interval_mean_steps <- aggregate(n.data3$steps, by=list(n.data3$interval), FUN=mean)
-n.interval_mean_steps$x <- as.integer(n.interval_mean_steps$x)
-max_mean_steps <- n.interval_mean_steps[n.interval_mean_steps$x == (max(n.interval_mean_steps$x)),]
-max_mean_steps
+head(data4.imputed)
 ```
 
 ```
-##     Group.1   x
-## 104     835 206
-```
-
-#### Commentary
-
-On average, the interval at 835 was the most active with an average of 206 steps in 5 minutes, possibly when the subject was running to catch the bus??????
-
-## Imputing missing values
-
-#### Commentary
-
-As shown above, the missing days are distributed evenly between the weekdays (6) and the weekends (2).  So it was decided to impute the missing values by calculating the mean for a given interval on a given day of the week and to insert that mean into the same missing day/interval.
-
-#### Code
-
-
-```r
-complete_data <- data[!is.na(data$steps),] #Remove the rows with $steps == NA
-average_steps <- aggregate(complete_data$steps, by=list(complete_data$day, complete_data$interval),
-                           FUN=mean)
-names(average_steps) <- c("day", "interval", "steps")
-average_steps$steps <- as.integer(round(average_steps$steps))
-
-missing_days <- data[is.na(data$steps),]#select the records with missing $steps == NA
-fixed_missing_days <- lookup_steps(average_steps, missing_days)# ref: Functions section this report
-
-fixed_data <- rbind(complete_data, fixed_missing_days)
-#check for missing $steps
-fixed_data[is.na(fixed_data$steps),]
-```
-
-```
-## [1] steps    date     interval day     
-## <0 rows> (or 0-length row.names)
+##     steps       date interval            iposixct day weekend
+## 289     0 2012-10-02     0000 2012-10-02 00:00:00   3 weekday
+## 290     0 2012-10-02     0005 2012-10-02 00:05:00   3 weekday
+## 291     0 2012-10-02     0010 2012-10-02 00:10:00   3 weekday
+## 292     0 2012-10-02     0015 2012-10-02 00:15:00   3 weekday
+## 293     0 2012-10-02     0020 2012-10-02 00:20:00   3 weekday
+## 294     0 2012-10-02     0025 2012-10-02 00:25:00   3 weekday
 ```
 
 #### Histogram of the daily totals after the missing data were amended.
 
-#### Code
 
 ```r
-fixed_daily_total_steps <- aggregate(fixed_data$steps, by=list(fixed_data$date), FUN=sum)
-png("C:/Users/Brian/Documents/PeerAssessment1/figure/hist2.png")
-hist(fixed_daily_total_steps$x, ylim=c(0, 20), 
-     main = "Histogram of Each Day's Total Daily Steps (Amended Data)", breaks = 10,
-      xlab = "Total Number of Steps on a Given Day", 
-      ylab = "Number of Days", labels = TRUE)
-dev.off()
+data5 <- data4.imputed
+    data5melt <- melt(data5, id.vars = "date", measure.vars="steps" ) 
+    data5cast <- dcast(data5melt, date ~ variable, fun.aggregate = sum)
+
+## create the histogram
+    par(bg = "#F4F4F7")
+    hist(data5cast$steps, main = "Plot 3: Repeat of Histogram in Plot 1, After Adding Missing Data.",
+         xlab = "Total Number of Steps on a Given Day", breaks = 20, col = "gray",
+         ylab= "Number of Days", labels = TRUE)
+    abline(v=mean(data5cast$steps),col='red')
+    abline(v=median(data5cast$steps),col='blue')
 ```
 
 ![plot of chunk hist2](figure/hist2.png) 
 
-```
-## RStudioGD 
-##         2
-```
-
 #### Mean/Median of the daily totals after the missing data were amended.
 
-#### Code
+Compare the old and the new amended datasets using the summary() function.
 
 
 ```r
-summary(fixed_daily_total_steps$x) #amended records.
+newdf <- summary(data5cast$steps) #amended records.
+olddf <- summary(na.omit(data1cast$steps)) #original records.
+rbind(newdf,olddf)
 ```
 
 ```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##      41    8920   11000   10800   12800   21200
+##       Min. 1st Qu. Median  Mean 3rd Qu.  Max.
+## newdf   41    9820  10600 10800   12800 21200
+## olddf   41    8840  10800 10800   13300 21200
 ```
 
-```r
-summary(daily_total_steps$x) #original records.
-```
+The amendment to the missing records by using the mean-interval-steps for the given day of the week raised both the mean and the median and enhanced the kurtosis of the whole distribution by narrowing the interquartile range. This is probably a natural consequence of imputing the missing data with means.  But this increased kurtosis may also be due to increasing the sample size.
 
-```
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##      41    8840   10800   10800   13300   21200
-```
-
-```r
-original <- data.frame(data.set = "Original ", mean = mean(daily_total_steps$x), 
-                       median = median(daily_total_steps$x))
-amended <- data.frame(data.set = "Amended ", mean = mean(fixed_daily_total_steps$x), 
-                      median = median(fixed_daily_total_steps$x))
-display <- rbind(original, amended)
-```
-
-#### Commentary
-
-The amending of the missing data by using the mean-interval-steps for the given day of the week raised both the mean and the median for the whole dataset by approximately 0.65%. 
-
-
-```r
-display
-```
-
-```
-##    data.set  mean median
-## 1 Original  10766  10765
-## 2  Amended  10821  11015
-```
+The amended data also produced a slight left shift in the interquartile range, which in the unamended data showed a degree of right skewness. On balance, I believe the dataset has been normalised rather than randomised by this remediation and is now more suitable for parametric analysis.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-#### Commentary
-
-As with the previous plot, the gaps had to be removed at the ends of each hour. 
-
-#### Code
-
 
 ```r
-data4 <- data[!is.na(data$steps),]#remove the missing $steps == NA
-#Convert minutes to 100ths of an hour to remove gaps in plot between 55 an 60 minutes.
-data4$interval <- sapply(data4$interval, dec_mins)#See dec_mins()in Functions
-date <- as.POSIXlt(data4$date,format="%Y-%m-%d")#Convert $date to DATE format
-head(date)
-```
+data5 <- data4.imputed
+data5$day <- wday(data5$date)
+data5$weekend <- "weekday"
+data5[data5$day==1|data5$day==7,"weekend"] <- "weekend"
 
-```
-## [1] "2012-10-02 EST" "2012-10-02 EST" "2012-10-02 EST" "2012-10-02 EST"
-## [5] "2012-10-02 EST" "2012-10-02 EST"
-```
+data5.melt <- melt(data5, id.vars=c("weekend", "interval"), measure.vars="steps")
+data5.cast <- dcast(data5.melt, weekend +interval ~ variable, fun.aggregate = mean)
 
-```r
-head(date$wday)
-```
+data5.cast$intervalct <- parse_date_time (data5.cast$interval, "HM")
 
-```
-## [1] 2 2 2 2 2 2
-```
-
-```r
-wdays <- (weekdays(date))
-wdays <- data.frame(day = wdays, interval = data4$interval, steps = data4$steps)
-head(wdays)
-```
-
-```
-##       day interval steps
-## 1 Tuesday        0     0
-## 2 Tuesday        8     0
-## 3 Tuesday       17     0
-## 4 Tuesday       25     0
-## 5 Tuesday       33     0
-## 6 Tuesday       42     0
-```
-
-```r
-weekends <- wdays[(wdays$day == "Saturday")|(wdays$day == "Sunday"), c("interval", "steps")]
-weekdays <- wdays[!((wdays$day == "Saturday")|(wdays$day == "Sunday")), c("interval", "steps")]
-weekend_mean_steps <- aggregate(weekends$steps, by=list(weekends$interval), FUN=mean)
-weekday_mean_steps <- aggregate(weekdays$steps, by=list(weekdays$interval), FUN=mean)
-weekend.df <- data.frame(day = "weekend", interval = weekend_mean_steps$Group.1, steps = weekend_mean_steps$x)
-weekday.df <- data.frame(day = "weekday", interval = weekday_mean_steps$Group.1, steps = weekday_mean_steps$x)
-combined.df <- rbind(weekend.df, weekday.df)
-combined.df$interval <- combined.df$interval/100
-library(lattice)
-combined_plot <- xyplot(steps ~ interval | day , data=combined.df, type = "l", layout = c(1,2),
-  xlab = "Time of day (24 hour clock), starting at midnight.",
-  ylab = "Average number of steps per minute.",
-  main = "Comparing average activity levels across the day\n on Weekdays and Weekends.")
-trellis.device(device = "png", file = "C:/Users/Brian/Documents/PeerAssessment1/figure/combined_plot.png")
-print(combined_plot)#, "C:/Users/Brian/Documents/PeerAssessment1/figure/combined_plot.png")
-dev.off()
+x = ggplot(data5.cast, aes(x = intervalct, y = steps))
+x = x + geom_line() + facet_grid(weekend~.)
+x = x + labs(x = "Time of Day", 
+             y = "Steps per 5 Minute Interval" )
+x = x + ggtitle("Plot 4: Mean Steps per Interval ~ Weekdays vs. Weekends")
+x = x + scale_x_datetime(labels = date_format("%H:%M"))
+print(x)
 ```
 
 ![plot of chunk combined_plot](figure/combined_plot.png) 
-
-```
-## RStudioGD 
-##         2
-```
-
-#### Commentary
 
 The comparison between the week days and the weekends shows a reasonably predictable cultural pattern of an early morning walk or jog followed by a mainly sedentary lifestyle during the rest of the working day.  On the weekend, there is a higher average level of activity across the days, consistent with weekend leisure activities.
 
 ## Software
 
 This document was created using:
+
+
+```r
+sessionInfo()
+```
+
+```
+## R version 3.1.1 (2014-07-10)
+## Platform: i386-w64-mingw32/i386 (32-bit)
+## 
+## locale:
+## [1] LC_COLLATE=English_Australia.1252  LC_CTYPE=English_Australia.1252   
+## [3] LC_MONETARY=English_Australia.1252 LC_NUMERIC=C                      
+## [5] LC_TIME=English_Australia.1252    
+## 
+## attached base packages:
+## [1] splines   grid      stats     graphics  grDevices utils     datasets 
+## [8] methods   base     
+## 
+## other attached packages:
+##  [1] distr_2.5.3              SweaveListingUtils_0.6.1
+##  [3] sfsmisc_1.0-26           startupmsg_0.9          
+##  [5] UsingR_2.0-2             quantreg_5.05           
+##  [7] SparseM_1.05             Hmisc_3.14-5            
+##  [9] Formula_1.1-2            survival_2.37-7         
+## [11] lattice_0.20-29          HistData_0.7-5          
+## [13] MASS_7.3-33              manipulate_0.98.953     
+## [15] markdown_0.7.4           knitr_1.6               
+## [17] scales_0.2.4             ggplot2_1.0.0           
+## [19] reshape2_1.4             lubridate_1.3.3         
+## [21] stringr_0.6.2           
+## 
+## loaded via a namespace (and not attached):
+##  [1] acepack_1.3-3.3     cluster_1.15.2      colorspace_1.2-4   
+##  [4] digest_0.6.4        evaluate_0.5.5      foreign_0.8-61     
+##  [7] formatR_0.10        gtable_0.1.2        htmltools_0.2.4    
+## [10] labeling_0.2        latticeExtra_0.6-26 memoise_0.2.1      
+## [13] mime_0.1.1          munsell_0.4.2       nnet_7.3-8         
+## [16] plyr_1.8.1          proto_0.3-10        RColorBrewer_1.0-5 
+## [19] Rcpp_0.11.1         rmarkdown_0.2.49    rpart_4.1-8        
+## [22] tools_3.1.1         yaml_2.1.11
+```
   
-  RStudio  Version 0.98.953 - © 2009-2013 RStudio, Inc.
-  
-  knitr Version 1.6
-  
-  the knit2html package was loaded separately into the console.
-    #library(knitr)
-    #knit2html(input = "C:/Users/Brian/Documents/PeerAssessment1/PA1_template.Rmd", 
-    #       output = "C:/Users/Brian/Documents/PeerAssessment1/PA1_template.md")
-    
-  git gui V 1.9.4 on W7 was used to push this document to the remote repo.
-  
-###### Work completed in September, 2013.
+###### Work completed in October, 2014, for the Reproducible Research unit in the Coursera Data Science course.
